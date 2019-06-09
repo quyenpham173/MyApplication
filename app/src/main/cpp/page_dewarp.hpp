@@ -28,20 +28,13 @@
 #define EDGE_MAX_LENGTH 100.0 // max reduced px length of edge connecting contours
 #define EDGE_ANGLE_COST 10.0  // cost of angles in edges (tradeoff vs. length)
 #define EDGE_MAX_ANGLE 7.5    // maximum change in angle allowed between contours
-
-#define RVEC_IDX(src) slice(src, 0, 3)  // index of rvec in params vector
-#define TVEC_IDX(src) slice(src, 3, 6)  // index of tvec in params vector
-#define CUBIC_IDX(src) slice(src, 6, 8) // index of cubic slopes in params vector
 #define slice(src, a, b) src.begin() + a, src.begin() + b - 1
 
 #define SPAN_MIN_WIDTH 30   // minimum reduced px width for span
-#define SPAN_PX_PER_STEP 20 // reduced px spacing for sampling along spans
+#define SPAN_PX_PER_STEP 25 // reduced px spacing for sampling along spans
 #define FOCAL_LENGTH 1.2    // normalized focal length of camera
 
 #define DEBUG_LEVEL 0      // 0=none, 1=some, 2=lots, 3=all
-#define DEBUG_OUTPUT "file" // file, screen, both
-
-#define WINDOW_NAME "Dewarp" // Window name for visualization
 #define MASK_TYPE_TEXT 0
 using namespace cv;
 using namespace std;

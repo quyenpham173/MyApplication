@@ -327,7 +327,7 @@ void get_page_extents(cv::Mat small, std::vector <cv::Point2f> line_point, cv::M
 	int max_x = width - PAGE_MARGIN_X;
 	int max_y = height - PAGE_MARGIN_Y;
 
-	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", line_point.size());
+//	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", line_point.size());
 
 	page_mask = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
     if (line_point.size() < 4) {
@@ -429,7 +429,7 @@ void get_contours_s(
 		// the height of the contours
 
 		double max, min;
-		// cv::minMaxLoc(reduced_tight_mask, &min, &max);
+		 cv::minMaxLoc(reduced_tight_mask, &min, &max);
 		// printf("min = %lf, max = %lf\n", min, max);
 		//exit(1);
 		// if the height of the heighest of the contour is greater that TEXT_MAX_THICKNESS
@@ -1086,7 +1086,7 @@ double be_like_target(const std::vector<double> &x, std::vector<double> &grad, v
 	{
 		min += pow(cv::norm(span_points_flat[i] - imagepoints[i]), 2);
 	}
-    __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%lf", min);
+ //   __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%lf", min);
 	if (DEBUG_LEVEL)
 		printf("loop = %d, min = %lf\n", loop, min);
 	//min_loop = min;
@@ -1104,7 +1104,7 @@ double Optimize::Minimize(std::vector<double> params)
 	opt.set_lower_bounds(lb);
 	opt.set_upper_bounds(lu);
 	opt.set_min_objective(be_like_target, NULL);
-	opt.set_xtol_rel(0.03);
+	opt.set_xtol_rel(0.02);
 	//opt.set_ftol_rel(1e-5);
 	std::vector<cv::Point2d> imagepoints;
 	opt.set_maxtime(1000);
@@ -1331,9 +1331,9 @@ JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_00024ImageSave
 	page_dewarp(img_src, img_dst, line_point);
 	line_point.clear();
 	mat = &img_dst;
-	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%p", mat);
-	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", mat->cols);
-	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", mat->rows);
+/*	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent1", "%p", mat);
+	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent2", "%d", mat->cols);
+	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent3", "%d", mat->rows);*/
 	return (jlong) mat;
 };
 }

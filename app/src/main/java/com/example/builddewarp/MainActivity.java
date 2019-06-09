@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR){
                     textToSpeech.setLanguage(loc);
-                    textToSpeech.speak(xin_chao, TextToSpeech.QUEUE_FLUSH,null);
+                    textToSpeech.speak(xin_chao, TextToSpeech.QUEUE_FLUSH,null, null);
                 }
             }
         });
@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     String[] permissions = new String[]{
-            Manifest.permission.INTERNET,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA,

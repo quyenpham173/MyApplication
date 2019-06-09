@@ -1,6 +1,7 @@
 package com.example.builddewarp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,7 +11,6 @@ import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -23,7 +23,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
@@ -76,11 +75,10 @@ public class CaptureImage extends AppCompatActivity {
     String nghieng_phai = "nghiêng phải ";
     String sang_trai = "đưa sang trái";
     String sang_phai = "đưa sang phải";
-    String len_tren = "đưa lên trên";
-    String xuong_duoi = "đưa xuống dưới";
+    String len_tren = "tiến ra trước";
+    String xuong_duoi = "lùi ra sau";
     String nang_len = "nâng lên";
     String ha_xuong = "hạ xuống";
-    String chup_lai = "Không tìm thấy trang sách";
     String wait = "Đang lấy nội dung trang sách";
     int test;
     RelativeLayout take;
@@ -245,6 +243,7 @@ public class CaptureImage extends AppCompatActivity {
         @Override
         public void run() {
             Log.d(TAG, "run begin");
+            long start = System.currentTimeMillis();
             ByteBuffer byteBuffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[byteBuffer.remaining()];
             byteBuffer.get(bytes);
@@ -252,16 +251,6 @@ public class CaptureImage extends AppCompatActivity {
             Bitmap mbitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
             Mat mymat = new Mat();
             Utils.bitmapToMat(mbitmap, mymat);
-
-            //Lấy các cạnh
-/*            Mat out_image = new Mat();
-            long mat_out = getvalue(mymat.nativeObj, out_image.nativeObj);
-            Mat view_img = new Mat(mat_out);
-            int w = view_img.width();
-            int h = view_img.height();
-            Bitmap.Config conf2 = Bitmap.Config.RGB_565;
-            Bitmap bmp2 = Bitmap.createBitmap(w, h, conf2);
-            Utils.matToBitmap(view_img, bmp2);*/
 
             //Lấy ảnh đúng + Dewarp
             test = getAction(mymat.nativeObj);
@@ -273,37 +262,37 @@ public class CaptureImage extends AppCompatActivity {
                         toSpeech.setLanguage(loc);
                         switch (test){
                             case 11:
-                                toSpeech.speak(chup_anh, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(chup_anh, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 1:
-                                toSpeech.speak(nghieng_len, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(nghieng_len, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 2:
-                                toSpeech.speak(nghieng_xuong, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(nghieng_xuong, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 3:
-                                toSpeech.speak(nghieng_trai, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(nghieng_trai, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 4:
-                                toSpeech.speak(nghieng_phai, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(nghieng_phai, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 5:
-                                toSpeech.speak(sang_trai, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(sang_trai, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 6:
-                                toSpeech.speak(sang_phai, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(sang_phai, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 7:
-                                toSpeech.speak(len_tren, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(len_tren, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 8:
-                                toSpeech.speak(xuong_duoi, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(xuong_duoi, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 9:
-                                toSpeech.speak(nang_len, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(nang_len, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                             case 10:
-                                toSpeech.speak(ha_xuong, TextToSpeech.QUEUE_FLUSH,null);
+                                toSpeech.speak(ha_xuong, TextToSpeech.QUEUE_FLUSH,null, null);
                                 break;
                                 default:
                                     break;
@@ -311,10 +300,58 @@ public class CaptureImage extends AppCompatActivity {
                     }
                 }
             });
+            long endDetect = System.currentTimeMillis();
+            Log.d("TimingDetect: ", (endDetect-start) + " ms");
 
             if (test==11){
                 closeCamera();
-                FileOutputStream fileOutputStream = null;
+                image.close();
+
+                //Lấy ảnh Lines
+                Mat Line = new Mat();
+                long startLines = System.currentTimeMillis();
+                long longLines = getLines(mymat.nativeObj, Line.nativeObj);
+                Mat matLines = new Mat(longLines);
+                int w = matLines.width();
+                int h = matLines.height();
+                Bitmap.Config config = Bitmap.Config.RGB_565;
+                Bitmap bm = Bitmap.createBitmap(w, h, config);
+                Utils.matToBitmap(matLines, bm);
+                long endLines = System.currentTimeMillis();
+                Log.d("TimingLines: ",(endLines - startLines) + " ms");
+
+                //Lưu ảnh Dewarp và xử lý OCR
+                Mat mat_dst = new Mat();
+                long startDewarp = System.currentTimeMillis();
+                long img_long = dewarpImage(mymat.nativeObj, mat_dst.nativeObj);
+                Log.d(TAG, "Tung " + img_long);
+                toSpeech = new TextToSpeech(CaptureImage.this, new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        if(status != TextToSpeech.ERROR){
+                            toSpeech.setLanguage(loc);
+                            toSpeech.speak(wait, TextToSpeech.QUEUE_FLUSH,null, null);
+                        }
+                    }
+                });
+                Mat img_dst = new Mat(img_long);
+                int w1 = img_dst.width();
+                int h1 = img_dst.height();
+                Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+                Bitmap bmp = Bitmap.createBitmap(w1, h1, conf);
+                Utils.matToBitmap(img_dst, bmp);
+                long endDewarp = System.currentTimeMillis();
+                Log.d("TimingDewarp: ", (endDewarp - startDewarp) + " ms");
+                imageToText.prepareTessData();
+                String result = imageToText.doInBackground(bmp);
+                Log.d("Get Message OCR", result);
+                Bundle bundle = new Bundle();
+                bundle.putString("RESULT", result);
+                Intent intent = new Intent(CaptureImage.this, ResultActivity.class);
+                intent.putExtras(bundle);
+
+                //Lưu ảnh gốc
+                FileOutputStream fileOutputStream;
                 File imageFile = createImageFile();
                 try {
                     fileOutputStream = new FileOutputStream(imageFile);
@@ -324,50 +361,9 @@ public class CaptureImage extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                image.close();
-                Intent intent = new Intent(CaptureImage.this, ResultActivity.class);
+                SaveImageLines(bm);  //Lưu ảnh các cạnh
+                SaveImageDewarp(bmp);  // Lưu ảnh dewarp
 
-                //Lưu ảnh Lines
-                Mat Line = new Mat();
-                long longLines = getLines(mymat.nativeObj, Line.nativeObj);
-                Mat matLines = new Mat(longLines);
-                int w = matLines.width();
-                int h = matLines.height();
-                Bitmap.Config config = Bitmap.Config.RGB_565;
-                Bitmap bm = Bitmap.createBitmap(w, h, config);
-                Utils.matToBitmap(matLines, bm);
-                SaveImageLines(bm);
-
-                //Lưu ảnh Dewarp và xử lý OCR
-                Mat mat_dst = new Mat();
-                long img_long = dewarpImage(mymat.nativeObj, mat_dst.nativeObj);
-                Log.d(TAG, "Tung " + img_long);
-                toSpeech = new TextToSpeech(CaptureImage.this, new TextToSpeech.OnInitListener() {
-                    @Override
-                    public void onInit(int status) {
-                        if(status != TextToSpeech.ERROR){
-                            toSpeech.setLanguage(loc);
-                            toSpeech.speak(wait, TextToSpeech.QUEUE_FLUSH,null);
-                        }
-                    }
-                });
-                Mat img_dst = new Mat(img_long);
-                int w1 = img_dst.width();
-                int h1 = img_dst.height();
-                Log.d(TAG, "Tung " + w1);
-                Log.d(TAG, "Tung " + h1);
-                Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-                Bitmap bmp = Bitmap.createBitmap(w1, h1, conf);
-                Utils.matToBitmap(img_dst, bmp);
-                SaveImageDewarp(bmp);
-                //Bitmap bmGray = toGrayscale(bmp);
-                //SaveImageGray(bmGray);
-                imageToText.prepareTessData();
-                String result = imageToText.doInBackground(bmp);
-                Log.d("Get Message OCR", result);
-                Bundle bundle = new Bundle();
-                bundle.putString("RESULT", result);
-                intent.putExtras(bundle);
                 startActivity(intent);
             }
         }
@@ -380,13 +376,13 @@ public class CaptureImage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture_image);
-        textureView = (TextureView) findViewById(R.id.texture);
-        take = (RelativeLayout) findViewById(take_picture);
-        time = (TextView) findViewById(R.id.timerValue);
+        textureView = findViewById(R.id.texture);
+        take = findViewById(take_picture);
+/*        time = findViewById(R.id.timerValue);
         startTime = SystemClock.uptimeMillis();
-        customHandler.postDelayed(updateTimerThread, 0);
+        customHandler.postDelayed(updateTimerThread, 0);*/
     }
-    private Runnable updateTimerThread = new Runnable() {
+/*    private Runnable updateTimerThread = new Runnable() {
 
         public void run() {
             timeInMilliseconds = SystemClock.uptimeMillis() - startTime;
@@ -397,7 +393,7 @@ public class CaptureImage extends AppCompatActivity {
             int mins = secs / 60;
             secs = secs % 60;
             int milliseconds = (int) (updatedTime % 1000);
-            String localtime = "" + mins + ":" + String.format("%02d", secs)
+            @SuppressLint("DefaultLocale") String localtime = "" + mins + ":" + String.format("%02d", secs)
                     + ":" + String.format("%03d", milliseconds);
             time.setText(localtime);
             if (mins == 5) {
@@ -407,7 +403,7 @@ public class CaptureImage extends AppCompatActivity {
                 customHandler.postDelayed(this, 0);
         }
 
-    };
+    };*/
 
     @Override
     protected void onResume() {
@@ -448,6 +444,7 @@ public class CaptureImage extends AppCompatActivity {
                 }
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
+                assert map != null;
                 Size imageSize = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new Comparator<Size>() {
@@ -619,6 +616,7 @@ public class CaptureImage extends AppCompatActivity {
     }
 
     private void lockFocus() {
+        long startLock = System.currentTimeMillis();
         state = STATE_WAIT_LOCK;
         previewCaptureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                 CaptureRequest.CONTROL_AF_TRIGGER_START);
@@ -628,6 +626,8 @@ public class CaptureImage extends AppCompatActivity {
                     cameraSessionCaptureCallback,
                     backgroundHandler);*/
         captureStillImage();
+        long endLock = System.currentTimeMillis();
+        Log.d("TimingLock: ",(endLock - startLock) + " ms");
     }
 
     private void unlockFocus() {

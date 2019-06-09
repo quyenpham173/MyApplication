@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -34,7 +35,7 @@ public class ResultActivity extends AppCompatActivity {
 
         assert bundle != null;
         final String content = bundle.getString("RESULT");
-
+        Log.d("Quyen", content);
         FileOutputStream fos = null;
         File textFile = createTextFile();
         try {
@@ -87,5 +88,6 @@ public class ResultActivity extends AppCompatActivity {
         String fileName = FILE_TXT + System.currentTimeMillis() + ".txt";
         return new File(dir, fileName);
     }
+
 }
 
