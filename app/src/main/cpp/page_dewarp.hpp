@@ -31,7 +31,7 @@
 #define slice(src, a, b) src.begin() + a, src.begin() + b - 1
 
 #define SPAN_MIN_WIDTH 30   // minimum reduced px width for span
-#define SPAN_PX_PER_STEP 25 // reduced px spacing for sampling along spans
+#define SPAN_PX_PER_STEP 30 // reduced px spacing for sampling along spans
 #define FOCAL_LENGTH 1.2    // normalized focal length of camera
 
 #define DEBUG_LEVEL 0      // 0=none, 1=some, 2=lots, 3=all

@@ -17,51 +17,43 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class ImageToText extends AsyncTask<Bitmap,String,String> {
-    //private static final String
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final String TESS_DATA = "/tessdata";
+    private static final String TESS_DATA = "/tessdata";
     private static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/Tess1";
     private Context contextImageToText;
-    private TextView textView;
     private String languge="vie";
 
     ImageToText(Context context){
-        contextImageToText=context;
-        //  textView=t;
+        this.contextImageToText=context;
     }
 
     @Override
     protected void onPreExecute(){
         super.onPreExecute();
-        //  textView.setText("init");
     }
 
 
     @Override
     protected String doInBackground(Bitmap... bitmaps) {
-        //prepareTessData();
-        publishProgress("init process");
+        prepareTessData();
         TessBaseAPI tessBaseAPI = new TessBaseAPI();
         tessBaseAPI.init(DATA_PATH,languge);
-        publishProgress("processing");
         tessBaseAPI.setImage(bitmaps[0]);
-        return tessBaseAPI.getUTF8Text();
+        String string = tessBaseAPI.getUTF8Text().replace("_", "").replace("~", "");
+        return string;
     }
 
     @Override
     protected void onProgressUpdate(String... s){
         super.onProgressUpdate(s[0]);
-        //   textView.setText(s[0]);
     }
 
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        //    textView.setText(s);
-
     }
 
-    void prepareTessData(){
+    private void prepareTessData(){
         AssetManager assetManager=contextImageToText.getAssets();
         InputStream in=null;
         OutputStream out=null;
@@ -80,7 +72,6 @@ public class ImageToText extends AsyncTask<Bitmap,String,String> {
                     out.write(buff,0,len);
                 }
             }
-            // }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
@@ -101,7 +92,5 @@ public class ImageToText extends AsyncTask<Bitmap,String,String> {
             }
         }
     }
-
-
 }
 

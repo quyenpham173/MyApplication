@@ -11,12 +11,4 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.builddewarp.ResultActivity">
 
-<!--    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/txtView"
-        android:textAlignment="center"
-        android:text="Reading..."
-        android:textColor="#d7f708"
-        android:textSize="40dp"/>-->
 </RelativeLayout>

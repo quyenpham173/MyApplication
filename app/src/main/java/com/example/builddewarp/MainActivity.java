@@ -13,34 +13,32 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import com.example.quyenpham.R;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import static com.example.quyenpham.R.id.activity_main;
 
 public class MainActivity extends AppCompatActivity {
     private TextToSpeech textToSpeech;
-    final String xin_chao = "Xin chào, vui lòng chạm vào màn hình điện thoại để chụp ảnh";
+    final CharSequence xin_chao = "Xin chào, vui lòng chạm vào màn hình điện thoại để chụp ảnh";
     private static final String TAG = "MainActivity1";
-    private static final int requestCode = 100;
+    String utteranceId = UUID.randomUUID().toString();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RelativeLayout mh = (RelativeLayout) findViewById(activity_main);
         mh.setBackgroundResource(R.drawable.anh2);
         checkPermissions();
         final Locale loc = new Locale("vi");
-        Log.d("Locale Available: ", Arrays.toString(loc.getAvailableLocales()));
         textToSpeech = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR){
                     textToSpeech.setLanguage(loc);
-                    textToSpeech.speak(xin_chao, TextToSpeech.QUEUE_FLUSH,null, null);
+                    textToSpeech.speak(xin_chao, TextToSpeech.QUEUE_FLUSH,null, utteranceId);
                 }
             }
         });

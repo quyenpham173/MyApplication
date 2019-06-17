@@ -14,7 +14,6 @@
 #include <android/log.h>
 #include "jni.h"
 
-#define THRESHHOLD  50
 #define DEBUG 0
 inline int rgb(int red, int green, int blue) {
     return (0xFF << 24) | (red << 16) | (green << 8) | blue;
@@ -30,7 +29,7 @@ Mat claheGO(Mat src,int _step = 8)
     int block = _step;//pblock
     int width = src.cols;
     int height= src.rows;
-    int width_block = width/block; //每个小格子的长和宽
+    int width_block = width/block;
     int height_block = height/block;
     int tmp2[8*8][256] ={0};
     float C2[8*8][256] = {0.0};
@@ -44,7 +43,6 @@ Mat claheGO(Mat src,int _step = 8)
             int start_y = j*height_block;
             int end_y = start_y + height_block;
             int num = i+block*j;
-            //遍历小块,计算直方图
             for(int ii = start_x ; ii < end_x ; ii++)
             {
                 for(int jj = start_y ; jj < end_y ; jj++)
@@ -53,11 +51,7 @@ Mat claheGO(Mat src,int _step = 8)
                     tmp2[num][index]++;
                 }
             }
-            //裁剪和增加操作，也就是clahe中的cl部分
-            //这里的参数 对应《Gem》上面 fCliplimit  = 4  , uiNrBins  = 255
             int average = width_block * height_block / 255;
-            //关于参数如何选择，需要进行讨论。不同的结果进行讨论
-            //关于全局的时候，这里的这个cl如何算，需要进行讨论
             int LIMIT = 40 * average;
             int steal = 0;
             for(int k = 0 ; k < 256 ; k++)
@@ -68,12 +62,10 @@ Mat claheGO(Mat src,int _step = 8)
                 }
             }
             int bonus = steal/256;
-            //hand out the steals averagely
             for(int k = 0 ; k < 256 ; k++)
             {
                 tmp2[num][k] += bonus;
             }
-            //计算累积分布直方图
             for(int k = 0 ; k < 256 ; k++)
             {
                 if( k == 0)
@@ -83,8 +75,6 @@ Mat claheGO(Mat src,int _step = 8)
             }
         }
     }
-    //计算变换后的像素值
-    //根据像素点的位置，选择不同的计算方法
     for(int  i = 0 ; i < width; i++)
     {
         for(int j = 0 ; j < height; j++)
@@ -107,7 +97,6 @@ Mat claheGO(Mat src,int _step = 8)
                 //four edges except coners
             else if( i <= width_block/2 )
             {
-                //线性插值
                 int num_i = 0;
                 int num_j = (j - height_block/2)/height_block;
                 int num1 = num_j*block + num_i;
@@ -116,7 +105,6 @@ Mat claheGO(Mat src,int _step = 8)
                 float q = 1-p;
                 CLAHE_GO.at<uchar>(j,i) = (int)((q*C2[num1][CLAHE_GO.at<uchar>(j,i)]+ p*C2[num2][CLAHE_GO.at<uchar>(j,i)])* 255);
             }else if( i >= ((block-1)*width_block+width_block/2)){
-                //线性插值
                 int num_i = block-1;
                 int num_j = (j - height_block/2)/height_block;
                 int num1 = num_j*block + num_i;
@@ -125,7 +113,6 @@ Mat claheGO(Mat src,int _step = 8)
                 float q = 1-p;
                 CLAHE_GO.at<uchar>(j,i) = (int)((q*C2[num1][CLAHE_GO.at<uchar>(j,i)]+ p*C2[num2][CLAHE_GO.at<uchar>(j,i)])* 255);
             }else if( j <= height_block/2 ){
-                //线性插值
                 int num_i = (i - width_block/2)/width_block;
                 int num_j = 0;
                 int num1 = num_j*block + num_i;
@@ -134,7 +121,6 @@ Mat claheGO(Mat src,int _step = 8)
                 float q = 1-p;
                 CLAHE_GO.at<uchar>(j,i) = (int)((q*C2[num1][CLAHE_GO.at<uchar>(j,i)]+ p*C2[num2][CLAHE_GO.at<uchar>(j,i)])* 255);
             }else if( j >= ((block-1)*height_block + height_block/2) ){
-                //线性插值
                 int num_i = (i - width_block/2)/width_block;
                 int num_j = block-1;
                 int num1 = num_j*block + num_i;
@@ -143,7 +129,6 @@ Mat claheGO(Mat src,int _step = 8)
                 float q = 1-p;
                 CLAHE_GO.at<uchar>(j,i) = (int)((q*C2[num1][CLAHE_GO.at<uchar>(j,i)]+ p*C2[num2][CLAHE_GO.at<uchar>(j,i)])* 255);
             }
-                //双线性插值
             else{
                 int num_i = (i - width_block/2)/width_block;
                 int num_j = (j - height_block/2)/height_block;
@@ -171,7 +156,6 @@ int PreProcess::linear_equation(float a1, float b1, float c1, float a2, float b2
     if(determinant != 0) {
         _point->x = (c1*b2 - b1*c2)/determinant;
         _point->y = (a1*c2 - c1*a2)/determinant;
-        //printf("TEST x = %f, y = %f\n", _point->x, _point->y);
         return 1;
     } else
         return  0;
@@ -184,23 +168,10 @@ double area_triangle(double a, double b, double c) {
     return s;
 }
 
-BGLBP::BGLBP() : beta(3), filterDim(3), neighbours(1)
-{
-    std::cout << "BGLBP()" << std::endl;
-}
-
-BGLBP::~BGLBP()
-{
-    std::cout << "~BGLBP()" << std::endl;
-}
-
 void BGLBP::run(const cv::Mat &input, cv::Mat &BGLBP)
 {
     if (input.empty())
         return;
-
-    //int rows = input.size().height;
-    //int cols = input.size().width;
     int channels = input.channels();
 
     // convert input image to grayscale
@@ -247,7 +218,6 @@ void BGLBP::run(const cv::Mat &input, cv::Mat &BGLBP)
         {
             // current central pixel
             unsigned char* grayData = &gray.data[j + i * gray.cols];
-            //int centralPixel = gray.data[j + i * gray.cols];
 
             // 3x3 neighborhood
             float sum = 0;
@@ -294,14 +264,10 @@ cv::Point2f* PreProcess::take_point() {
 
 // Camera Adjustment Direction
 void PreProcess::EdgeProcess(){
-    // Print the number of edges detected!
-    printf("Num of Edge = %d\n", numofEdge);
-    __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", numofEdge);
     float point_value;
     cv::Point2f top_left, top_right, bottom_left, bottom_right;
     double top, left, right, bottom, diagonal;
     if (numofEdge < 4) {
-        printf("Nang anh len\n");
         action = Action::nang_len;
         return;
     }
@@ -312,7 +278,6 @@ void PreProcess::EdgeProcess(){
         linear_equation(cos(parallel[1]), sin(parallel[1]), parallel[0], cos(perpendicular1[1]), sin(perpendicular1[1]), perpendicular1[0], &point[2]);
         linear_equation(cos(parallel[1]), sin(parallel[1]), parallel[0], cos(perpendicular2[1]), sin(perpendicular2[1]), perpendicular2[0], &point[3]);
         sort(point, point + 4,comp);
-        printf("Image Size = %d, %d\n", image.size().height, image.size().width);
         top_left = point[0];
         top_right = point[1];
         bottom_left = point[2];
@@ -331,63 +296,45 @@ void PreProcess::EdgeProcess(){
         // Area of the image
         double area = area_triangle(top, right, diagonal) + area_triangle(left, bottom, diagonal);
         double image_area = (double) image.size().height * image.size().width;
-        printf("LINES: %lf\n%lf\n%lf\n%lf\n", top, right, left, bottom);
-        printf("area = %lf, Image area = %lf\n", area, image_area);
-        __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent top ", "%lf", top);
-        __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent bottom ", "%lf", bottom);
-        __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent left, right ", "%lf and %lf", left, right);
-
-
 
         if (top > bottom * 1.25) {
-            printf("Nghieng len\n");
             PreProcess::action = Action::nghieng_len;
             return;
         } else if (bottom > top *  1.25) {
-            printf("Nghieng xuong\n");
             PreProcess::action = Action::nghieng_xuong;
             return;
         } else if (right > left * 1.15) {
-            printf("Nghieng phai\n");
             PreProcess::action = Action::nghieng_phai;
             return;
         } else if (left > right * 1.15) {
-            printf("Nghieng trai\n");
             PreProcess::action = Action::nghieng_trai;
             return;
         }
         if (area > 0.4 * image_area) {
-            
-            printf("chup anh\n");
             PreProcess::action = Action::chup_anh;
             return;
         }
         if (std::max(top_left.y, top_right.y) < 50 ) {
-            printf("Di may anh len\n");
             PreProcess::action = Action::len_tren;
             return;
         }
 
         if (std::max(bottom_left.y, bottom_right.y) > image.size().height - 50) {
-            printf("Di may anh xuong\n");
             PreProcess::action = Action::xuong_duoi;
             return;
         }
 
         if (std::max(bottom_left.x, top_left.x) < 50) {
-            printf("Di may anh sang trai\n");
             PreProcess::action = Action::sang_trai;
             return;
         }
 
         if (std::max(bottom_right.x, top_right.x) < 50) {
-            printf("Di may anh sang phai\n");
             PreProcess::action = Action::sang_phai;
             return;
         }
 
         else {
-            printf("Ha may xuong\n");
             PreProcess::action = Action::ha_xuong;
             return;
         }
@@ -424,8 +371,6 @@ void PreProcess::detectEdges(vector<cv::Vec2f> lines) {
     numofEdge = 1;
     this->original = lines[0]; // original lay la canh dau tien
     if (lines.size() == 1){
-        printf("Just Detect one line");
-        //numofEdge += 1;
     }
 
 
@@ -440,29 +385,21 @@ void PreProcess::detectEdges(vector<cv::Vec2f> lines) {
         float theta0 = this->original[1];
         float delta = abs(theta - theta0);
         if (this->parallel[0] == -1) {
-            printf("1111 rho = %f,  rho0 = %f\n", rho, rho0);
             if ((theta + theta0 - 2 *M_PI) < angle_threshold && rho*rho0 < 0)
                     if (abs(abs(rho0) - abs(rho)) < 30)
                         continue;
             if (abs(rho - rho0) > this->width_threshold)
                 if (delta < this->angle_threshold || abs(delta - M_PI) < this->angle_threshold || abs(delta - 2 * M_PI) < this->angle_threshold)
                 {
-                    printf("DELTAAAA rho = %f,  rho0 = %f\n", rho, rho0);
-                    printf("DELTAAAA angle = %f,  angle0 = %f\n", theta, theta0);
-
                     this->parallel = lines[i];
-
                     numofEdge += 1;
                     continue;
                 }
         }
         if (abs(delta - M_PI / 2) < this->angle_threshold) {
-             printf("debug4 theta = %f,  theta0 = %f\n", theta, theta0);
-             printf("this->perpendicular1[0] = %f\n", this->perpendicular1[0]);
             if (this->perpendicular1[0] == -1)
             {
                 this->perpendicular1 = lines[i];
-                printf("debug3 rho = %f,  rho0 = %f\n", rho, this->perpendicular1[0]);
                 numofEdge += 1;
             }
 
@@ -471,7 +408,6 @@ void PreProcess::detectEdges(vector<cv::Vec2f> lines) {
                 if (abs(perpendicular1[1] + theta - 2 * M_PI) < angle_threshold && rho*this->perpendicular1[0] < 0)
                     if (abs(abs(rho) - abs(this->perpendicular1[0])) < 30)
                         continue;
-                printf("debug2 rho = %f,  rho0 = %f\n", rho, this->perpendicular1[0]);
                 float height = abs(rho - this->perpendicular1[0]);
                 if (height > height_threshold)
                 {
@@ -497,9 +433,6 @@ void PreProcess::process() {
     cv::Mat kernel = getStructuringElement(cv::MORPH_RECT,
                                            cv::Size(charSize, charSize));
     cv::cvtColor(image, gray_in, cv::COLOR_BGR2GRAY);
-    //cv::GaussianBlur( gray_in, gray, Size( 19, 19), 0, 0 );
-    //cv::medianBlur(gray_in, gray, 11);
-    //cv::blur( gray_in, gray, Size( 19, 19), Point(-1,-1) );
     dilate(gray_in, dilation_dst, kernel, cv::Point(-1, -1), 1);
     if (DEBUG)
     {
@@ -510,12 +443,8 @@ void PreProcess::process() {
         cv::waitKey(0);
     }
 
-    //cv::cvtColor(dilation_dst, gray, cv::COLOR_BGR2GRAY);
-    //smoothImage(dilation_dst, PreProcess::charSize, &dst);
     enforceContrast(dilation_dst, dst, "local");
-    //smoothImage(dst, PreProcess::charSize, &dst);
     smoothImage(dilation_dst, PreProcess::charSize, &dst);
-    //enforceThreshold(dst, &dst);
     cv::Canny(dst, candy_img, 20, 50, 3, true);
     if (DEBUG)
     {
@@ -525,40 +454,21 @@ void PreProcess::process() {
         cv::imshow("Display Candy", candy);
         cv::waitKey(0);
     }
-    //cvtColor(candy_img, candy_img, cv::COLOR_GRAY2BGR);
-    //candy_img.convertTo(candy_img, CV_8UC1);
-    //cv::HoughLinesP(candy_img, lines, 1, M_PI / 180, 65, 30, 30);
     cv::HoughLines(candy_img, lines1, 1, M_PI / 180, 60);
-    //vector<cv::Vec2f> lines2;
-    // for (int i = 0; i < lines.size(); i++)
-    //     lines2.push_back(twoPoints2Polar(lines[i]));
-    // printf("So line tim duoc la: %d\n", lines.size());
     detectEdges(lines1);
     if (1)
     {
-        printlines();
         showImageWithLine();
     }
 
     EdgeProcess();
 }
 
-void PreProcess::printlines(){
-    printf("%.2f, %.2f \n",original[0], original[1]);
-    printf("%.2f, %.2f\n",parallel[0], parallel[1]);
-    printf("%f, %.2f\n",perpendicular1[0], perpendicular1[1]);
-    printf("%.2f, %.2f\n",perpendicular2[0], perpendicular2[1]);
-
-
-}
-
 void PreProcess::showImageWithLine() {
-    //cv::Mat color_dst;
     color_dst = image.clone();
     for( size_t i = 0; i < rec_lines.size(); i++ ) {
         float rho = rec_lines[i][0];
         float theta = rec_lines[i][1];
-        //printf("rho = %.2f, theta = %.2f",rho, theta);
         if (rho == -1)
             continue;
         double a = cos(theta), b = sin(theta);
@@ -569,19 +479,6 @@ void PreProcess::showImageWithLine() {
                       cvRound(y0 - 1000*(a)));
         cv::line(color_dst, pt1, pt2, cv::Scalar(0,0,255), 3, 8);
     }
-
-
-//    if (color_dst.empty()){
-//        printf("NULLLLLL");
-//        return;
-//    }
-//    cv::namedWindow( "Detected Lines", 1 );
-//    cv::resize(color_dst, color_dst, cv::Size(), 0.25, 0.25);
-//    cv::imshow( "Detected Lines", color_dst );
-//
-//    //cv::imwrite("Deteced_lines.jpg", color_dst);
-//
-//    cv::waitKey(0);
 
 }
 
@@ -596,13 +493,10 @@ void PreProcess::boundingbox(cv::Mat src, vector <cv::Vec2f> lines){
     cv::findContours(candy_img, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     vector<vector<Point> > contours_poly( contours.size() );
     vector<Rect> boundRect( contours.size() );
-    //vector<Point2f>center( contours.size() );
-    //vector<float>radius( contours.size() );
     std::vector<double> height_list;
     for( int i = 0; i < contours.size(); i++ ) {
         approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
         boundRect[i] = boundingRect( Mat(contours_poly[i]) );
-        //minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
     }
 
 
@@ -611,12 +505,10 @@ void PreProcess::boundingbox(cv::Mat src, vector <cv::Vec2f> lines){
         int y = boundRect[i].y;
         int width = boundRect[i].width;
         int height = boundRect[i].height;
-        //printf("height: %d\n", height);
         if (height < 25)
             height_list.push_back(height);
 
     }
-//    double sum = std::accumulate(height_list.begin(), height_list.end(), 0.0);
     double sum = 0.0;
     for(auto i = 0; i<height_list.size(); i++)
         sum += height_list.at(i);
@@ -646,27 +538,16 @@ void PreProcess::boundingbox(cv::Mat src, vector <cv::Vec2f> lines){
     }
 
     char_size = (int) char_size / count;
-//    if (char_size < 10)
-//        this->charSize = 5;
-//    else
     this->charSize = (int) char_size;
-    printf("Kernel Size = %d\n", charSize);
-    //charSize = 6;
-    //printf("PUSSHHHHHHHHH");
-    //std::cout << '\n";
-    //printf("PUSSHHHHHHHHH");
     Mat drawing = Mat::zeros( src.size(), CV_8UC3 );
     for( int i = 0; i< contours.size(); i++ ) {
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
         drawContours( drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
         if (boundRect[i].height == 0)
-            //printf("printab");
             continue;
         rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
-        //circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
     }
 
-    // Show in a window
     if (DEBUG) {
         namedWindow( "Contours", WINDOW_AUTOSIZE );
         cv::resize(drawing, drawing, cv::Size(), 0.25, 0.25);
@@ -674,13 +555,6 @@ void PreProcess::boundingbox(cv::Mat src, vector <cv::Vec2f> lines){
         waitKey(0);
     }
 }
-static void help()
-{
-    cout << "\n Super app detect line.\n"
-            "Usage:\n"
-            "./C_preprocess <image_name>\n" << endl;
-}
-
 
 void resize_to_screen1(cv::Mat src, cv::Mat *dst, int max_width = 1280, int max_height = 700)
 {
@@ -733,43 +607,8 @@ void smoothImage(cv::Mat image, int kerSize, cv::Mat *dst, string option) {
         cv::GaussianBlur(image, *dst, cv::Size(kerSize, kerSize), 2);
 }
 
-int main(int argc, char** argv ) {
-    clock_t start = clock();
-    float width_threshold = 200;
-    float height_threshold = 300;
-    cv::Mat dst;
-    cv::Mat image, image_resize;
-    if (argc == 1) {
-        help();
-        return 0;
-    }
-
-    string filename = argv[1];
-    if (filename.empty()) {
-        help();
-        cout << "Nhap vao anh" << endl;
-        return -1;
-    }
-    image = cv::imread(filename);
-    if(image.empty()) {
-        help();
-        cout << "can not open " << filename << endl;
-        return -1;
-    }
-    // Khoi tao
-    //cv::cvtColor(image, dst, cv::COLOR_GRAY2BGR);
-
-    imageresize(image, &image_resize);
-
-    PreProcess image_process(image_resize, width_threshold, height_threshold);
-    image_process.process();
-    printf("Time: %.2fs\n", (double)(clock() - start)/CLOCKS_PER_SEC);
-    Action a = chup_anh;
-    printf("%d",a);
-}
-
 extern "C"{
-JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_00024ImageSave_getLines
+JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_getLines
         (JNIEnv*, jobject, jlong inpAddr, jlong outAddr){
     Mat& image = *(Mat*) inpAddr;
     Mat& dst2 = *(Mat*) outAddr;
@@ -784,7 +623,6 @@ JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_00024ImageSave
     PreProcess image_process(image_resize, width_threshold, height_threshold);
     image_process.process();
     ac = image_process.action;
-    __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", ac);
     dst2 = image_process.color_dst.clone();
     mat2 = &dst2;
     return (jlong) mat2;
@@ -802,7 +640,6 @@ JNIEXPORT jint JNICALL Java_com_example_builddewarp_CaptureImage_00024ImageSave_
     PreProcess image_process(image_resize, width_threshold, height_threshold);
     image_process.process();
     ac = image_process.action;
-    __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent Action", "%d", ac);
     return ac;
 };
 }

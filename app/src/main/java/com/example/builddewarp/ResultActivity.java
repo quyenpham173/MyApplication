@@ -1,6 +1,8 @@
 package com.example.builddewarp;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
@@ -16,7 +18,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.UUID;
 
 import static com.example.quyenpham.R.id.activity_result;
 
@@ -35,12 +39,23 @@ public class ResultActivity extends AppCompatActivity {
 
         assert bundle != null;
         final String content = bundle.getString("RESULT");
-        Log.d("Quyen", content);
+        assert content != null;
+        final CharSequence charSequence = new StringBuffer(content);
+        final Locale loc = new Locale("vi");
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status == TextToSpeech.SUCCESS){
+                    textToSpeech.setLanguage(loc);
+                    String utteranceId = this.hashCode() + "";
+                    textToSpeech.speak(content, TextToSpeech.QUEUE_FLUSH,null, utteranceId);
+                }
+            }
+        });
         FileOutputStream fos = null;
         File textFile = createTextFile();
         try {
             fos = new FileOutputStream(textFile);
-            assert content != null;
             fos.write(content.getBytes());
             Toast.makeText(ResultActivity.this, "save to " + getFilesDir() +
                             "/" + FILE_TXT,
@@ -58,16 +73,6 @@ public class ResultActivity extends AppCompatActivity {
                 }
             }
         }
-        final Locale loc = new Locale("vi");
-        textToSpeech = new TextToSpeech(ResultActivity.this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if(status != TextToSpeech.ERROR){
-                    textToSpeech.setLanguage(loc);
-                    textToSpeech.speak(content, TextToSpeech.QUEUE_FLUSH,null);
-                }
-            }
-        });
 
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(activity_result);
         relativeLayout.setOnClickListener(new View.OnClickListener() {
@@ -89,5 +94,13 @@ public class ResultActivity extends AppCompatActivity {
         return new File(dir, fileName);
     }
 
+
+    @Override
+    protected void onPause() {
+        if (textToSpeech != null){
+            textToSpeech.stop();
+        }
+        super.onPause();
+    }
 }
 

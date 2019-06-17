@@ -22,33 +22,33 @@ std::vector<cv::Point2d> keypoint;
 std::vector<double> params, out_params, out_page_dims;
 double dims[2];
 std::vector<cv::Scalar> colors_debug {	cv::Scalar(255, 0, 0),
-                                       	cv::Scalar(255, 63, 0),
-                                        cv::Scalar(255, 127, 0),
-                                        cv::Scalar(255, 191, 0),
-                                        cv::Scalar(255, 255, 0),
-                                        cv::Scalar(191, 255, 0),
-                                        cv::Scalar(127, 255, 0),
-                                        cv::Scalar(63, 255, 0),
-                                        cv::Scalar(0, 255, 0),
-                                        cv::Scalar(0, 255, 63),
-                                        cv::Scalar(0, 255, 127),
-                                        cv::Scalar(0, 255, 191),
-                                        cv::Scalar(0, 255, 255),
-                                        cv::Scalar(0, 191, 255),
-                                        cv::Scalar(0, 127, 255),
-                                        cv::Scalar(0, 63, 255),
-                                        cv::Scalar(0, 0, 255),
-                                        cv::Scalar(63, 0, 255),
-                                        cv::Scalar(127, 0, 255),
-                                        cv::Scalar(191, 0, 255),
-                                        cv::Scalar(255, 0, 255),
-                                        cv::Scalar(255, 0, 191),
-                                        cv::Scalar(255, 0, 127),
-                                        cv::Scalar(255, 0, 63)
-                                      };
+										  cv::Scalar(255, 63, 0),
+										  cv::Scalar(255, 127, 0),
+										  cv::Scalar(255, 191, 0),
+										  cv::Scalar(255, 255, 0),
+										  cv::Scalar(191, 255, 0),
+										  cv::Scalar(127, 255, 0),
+										  cv::Scalar(63, 255, 0),
+										  cv::Scalar(0, 255, 0),
+										  cv::Scalar(0, 255, 63),
+										  cv::Scalar(0, 255, 127),
+										  cv::Scalar(0, 255, 191),
+										  cv::Scalar(0, 255, 255),
+										  cv::Scalar(0, 191, 255),
+										  cv::Scalar(0, 127, 255),
+										  cv::Scalar(0, 63, 255),
+										  cv::Scalar(0, 0, 255),
+										  cv::Scalar(63, 0, 255),
+										  cv::Scalar(127, 0, 255),
+										  cv::Scalar(191, 0, 255),
+										  cv::Scalar(255, 0, 255),
+										  cv::Scalar(255, 0, 191),
+										  cv::Scalar(255, 0, 127),
+										  cv::Scalar(255, 0, 63)
+};
 bool sort_contourInfo (const ContourInfo ci0, const ContourInfo ci1)
-    {
-        return ci0.rect.y < ci1.rect.y;
+{
+	return ci0.rect.y < ci1.rect.y;
 }
 
 std::vector<cv::Point2d> norm2pix(cv::Size s, std::vector<cv::Point2d> pts, bool as_integer)
@@ -177,7 +177,7 @@ void draw_correspondences(string filename, cv::Mat img, std::vector<cv::Point2d>
 		cv::Point point((int)projpts[i].x, (int)projpts[i].y);
 		cv::circle(display, point, 3, cv::Scalar(0, 0, 255), -1, cv::LINE_AA);
 	}
-	
+
 	for (unsigned int i = 0; i < dstpoints.size() - 1; i++)
 	{
 		printf("i = %u\n", i);
@@ -330,20 +330,20 @@ void get_page_extents(cv::Mat small, std::vector <cv::Point2f> line_point, cv::M
 //	__android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%d", line_point.size());
 
 	page_mask = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
-    if (line_point.size() < 4) {
-        cv::rectangle(page_mask, cv::Point(min_x, min_y), cv::Point(max_x, max_y), cv::Scalar(255, 255, 255), -1);
-        page_outline->push_back(cv::Point(min_x, min_y));
-        page_outline->push_back(cv::Point(min_x, max_y));
-         page_outline->push_back(cv::Point(max_x, max_y));
-         page_outline->push_back(cv::Point(max_x, min_y));
-    }
+	if (line_point.size() < 4) {
+		cv::rectangle(page_mask, cv::Point(min_x, min_y), cv::Point(max_x, max_y), cv::Scalar(255, 255, 255), -1);
+		page_outline->push_back(cv::Point(min_x, min_y));
+		page_outline->push_back(cv::Point(min_x, max_y));
+		page_outline->push_back(cv::Point(max_x, max_y));
+		page_outline->push_back(cv::Point(max_x, min_y));
+	}
 
 	else {
-        cv::rectangle(page_mask, cv::Point((int)line_point[0].x, (int)line_point[0].y), cv::Point((int)line_point[3].x, (int)line_point[3].y), cv::Scalar(255, 255, 255), -1);
-        page_outline->push_back(cv::Point((int)line_point[0].x, (int)line_point[0].y));
-        page_outline->push_back(cv::Point((int)line_point[1].x, (int)line_point[1].y));
-        page_outline->push_back(cv::Point((int)line_point[3].x, (int)line_point[3].y));
-        page_outline->push_back(cv::Point((int)line_point[2].x, (int)line_point[2].y));
+		cv::rectangle(page_mask, cv::Point((int)line_point[0].x, (int)line_point[0].y), cv::Point((int)line_point[3].x, (int)line_point[3].y), cv::Scalar(255, 255, 255), -1);
+		page_outline->push_back(cv::Point((int)line_point[0].x, (int)line_point[0].y));
+		page_outline->push_back(cv::Point((int)line_point[1].x, (int)line_point[1].y));
+		page_outline->push_back(cv::Point((int)line_point[3].x, (int)line_point[3].y));
+		page_outline->push_back(cv::Point((int)line_point[2].x, (int)line_point[2].y));
 	}
 
 	// page_outline->push_back(cv::Point(min_x, min_y));
@@ -354,12 +354,12 @@ void get_page_extents(cv::Mat small, std::vector <cv::Point2f> line_point, cv::M
 }
 
 void make_tight_mask(
-	std::vector<cv::Point> contour,
-	int min_x,
-	int min_y,
-	int width,
-	int height,
-	cv::Mat *tight_mask)
+		std::vector<cv::Point> contour,
+		int min_x,
+		int min_y,
+		int width,
+		int height,
+		cv::Mat *tight_mask)
 {
 	unsigned int i;
 	// each mask is a zeroes matrix whose width and height are equal to the width and height
@@ -386,11 +386,11 @@ void make_tight_mask(
 }
 
 void get_contours_s(
-	std::string name,
-	cv::Mat small,
-	cv::Mat page_mask,
-	int mask_type,
-	std::vector<ContourInfo> &contours_out)
+		std::string name,
+		cv::Mat small,
+		cv::Mat page_mask,
+		int mask_type,
+		std::vector<ContourInfo> &contours_out)
 {
 	cv::Mat mask, hierarchy;
 	unsigned int i;
@@ -418,7 +418,7 @@ void get_contours_s(
 			continue;
 
 		make_tight_mask(contours[i], min_x, min_y, width, height, &tight_mask);
-		
+
 		cv::Mat reduced_tight_mask;
 		// cout << tight_mask;
 		// printf("\n");
@@ -429,7 +429,7 @@ void get_contours_s(
 		// the height of the contours
 
 		double max, min;
-		 cv::minMaxLoc(reduced_tight_mask, &min, &max);
+		cv::minMaxLoc(reduced_tight_mask, &min, &max);
 		// printf("min = %lf, max = %lf\n", min, max);
 		//exit(1);
 		// if the height of the heighest of the contour is greater that TEXT_MAX_THICKNESS
@@ -475,9 +475,9 @@ double angle_dist(double angle_b, double angle_a)
 }
 
 void generate_candidate_edge(
-	ContourInfo *cinfo_a,
-	ContourInfo *cinfo_b,
-	Edge *var_Edge)
+		ContourInfo *cinfo_a,
+		ContourInfo *cinfo_b,
+		Edge *var_Edge)
 {
 	int swap = 0;
 	ContourInfo _cinfo_a(*cinfo_a);
@@ -504,15 +504,15 @@ void generate_candidate_edge(
 	double overall_angle = atan2(overall_tangent[1], overall_tangent[0]);
 
 	double delta_angle = std::max(
-							 angle_dist(_cinfo_a.angle, overall_angle),
-							 angle_dist(_cinfo_b.angle, overall_angle)) *
+			angle_dist(_cinfo_a.angle, overall_angle),
+			angle_dist(_cinfo_b.angle, overall_angle)) *
 						 180 / M_PI;
 
 	double x_overlap = std::max(x_overlap_a, x_overlap_b);
 
 	double dist = sqrt(
-		pow(cinfo_b->point0[0] - cinfo_a->point1[0], 2) +
-		pow(cinfo_b->point0[1] - cinfo_a->point1[1], 2));
+			pow(cinfo_b->point0[0] - cinfo_a->point1[0], 2) +
+			pow(cinfo_b->point0[1] - cinfo_a->point1[1], 2));
 
 	if (dist > EDGE_MAX_LENGTH || x_overlap > EDGE_MAX_OVERLAP || delta_angle > EDGE_MAX_ANGLE)
 	{
@@ -534,11 +534,11 @@ void generate_candidate_edge(
 }
 
 void assemble_spans(
-	std::string name,
-	cv::Mat small,
-	cv::Mat page_mask,
-	std::vector<ContourInfo> cinfo_list,
-	std::vector<std::vector<ContourInfo>> *spans)
+		std::string name,
+		cv::Mat small,
+		cv::Mat page_mask,
+		std::vector<ContourInfo> cinfo_list,
+		std::vector<std::vector<ContourInfo>> *spans)
 {
 	unsigned int i, j;
 	std::sort(cinfo_list.begin(), cinfo_list.end(), sort_contourInfo);
@@ -641,9 +641,9 @@ int Dewarp::round_nearest_multiple(int i, int factor)
 }
 
 void sample_spans(
-	cv::Size shape,
-	std::vector<std::vector<ContourInfo>> spans,
-	std::vector<std::vector<cv::Point2d>> *span_points)
+		cv::Size shape,
+		std::vector<std::vector<ContourInfo>> spans,
+		std::vector<std::vector<cv::Point2d>> *span_points)
 {
 	unsigned int i, j;
 	for (i = 0; i < spans.size(); ++i)
@@ -748,13 +748,13 @@ void sample_spans(
 }
 
 void keypoints_from_samples(
-	cv::Mat small,
-	cv::Mat page_mask,
-	std::vector<cv::Point> page_outline,
-	std::vector<std::vector<cv::Point2d>> span_points,
-	std::vector<cv::Point2d> *corners,
-	std::vector<std::vector<double>> *xcoords,
-	std::vector<double> *ycoords)
+		cv::Mat small,
+		cv::Mat page_mask,
+		std::vector<cv::Point> page_outline,
+		std::vector<std::vector<cv::Point2d>> span_points,
+		std::vector<cv::Point2d> *corners,
+		std::vector<std::vector<double>> *xcoords,
+		std::vector<double> *ycoords)
 {
 	cv::Point2d all_evecs(0, 0);
 	double all_weights = 0;
@@ -774,14 +774,14 @@ void keypoints_from_samples(
 		cv::PCA pca(data_pts, cv::Mat(), 0);
 
 		cv::Point2d _evec(
-			pca.eigenvectors.at<double>(0, 0),
-			pca.eigenvectors.at<double>(0, 1));
+				pca.eigenvectors.at<double>(0, 0),
+				pca.eigenvectors.at<double>(0, 1));
 
 		// cout << "DEBUG_KEYPOINTS_FROM_SAMPLE_1:" << _evec.x << "/" << _evec.y << endl;
 		//cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << span_points[i].size() << endl;
 		double weight = sqrt(
-			pow(span_points[i][0].x - span_points[i].back().x, 2) +
-			pow(span_points[i][0].y - span_points[i].back().y, 2));
+				pow(span_points[i][0].x - span_points[i].back().x, 2) +
+				pow(span_points[i][0].y - span_points[i].back().y, 2));
 		//cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << span_points[i].size() << endl;
 		// type of _evec can either be Point or vector of 1 Point
 		all_evecs.x += _evec.x * weight;
@@ -911,19 +911,19 @@ void keypoints_from_samples(
 }
 
 void get_default_params(
-	std::vector<cv::Point2d> corners,
-	std::vector<double> ycoords,
-	std::vector<std::vector<double>> xcoords,
-	double *rough_dims,
-	std::vector<int> *span_counts,
-	std::vector<double> *params)
+		std::vector<cv::Point2d> corners,
+		std::vector<double> ycoords,
+		std::vector<std::vector<double>> xcoords,
+		double *rough_dims,
+		std::vector<int> *span_counts,
+		std::vector<double> *params)
 {
 	double page_width = sqrt(
-		pow(corners[1].x - corners[0].x, 2) +
-		pow(corners[1].y - corners[0].y, 2));
+			pow(corners[1].x - corners[0].x, 2) +
+			pow(corners[1].y - corners[0].y, 2));
 	double page_height = sqrt(
-		pow(corners[corners.size() - 1].x - corners[0].x, 2) +
-		pow(corners[corners.size() - 1].y - corners[0].y, 2));
+			pow(corners[corners.size() - 1].x - corners[0].x, 2) +
+			pow(corners[corners.size() - 1].y - corners[0].y, 2));
 	//printf("page_width = %lf\n", page_width);
 	//printf("page_height = %lf\n", page_height);
 
@@ -1086,7 +1086,7 @@ double be_like_target(const std::vector<double> &x, std::vector<double> &grad, v
 	{
 		min += pow(cv::norm(span_points_flat[i] - imagepoints[i]), 2);
 	}
- //   __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%lf", min);
+	//   __android_log_print(ANDROID_LOG_ERROR, "DEBUG_get_page_extent", "%lf", min);
 	if (DEBUG_LEVEL)
 		printf("loop = %d, min = %lf\n", loop, min);
 	//min_loop = min;
@@ -1104,7 +1104,7 @@ double Optimize::Minimize(std::vector<double> params)
 	opt.set_lower_bounds(lb);
 	opt.set_upper_bounds(lu);
 	opt.set_min_objective(be_like_target, NULL);
-	opt.set_xtol_rel(0.02);
+	opt.set_xtol_rel(0.03);
 	//opt.set_ftol_rel(1e-5);
 	std::vector<cv::Point2d> imagepoints;
 	opt.set_maxtime(1000);
@@ -1321,7 +1321,7 @@ int page_dewarp(cv::Mat img_src, cv::Mat &img_dst, std::vector <cv::Point2f> lin
 
 extern "C" {
 
-JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_00024ImageSave_dewarpImage
+JNIEXPORT jlong JNICALL Java_com_example_builddewarp_CaptureImage_dewarpImage
 		(JNIEnv*, jobject, jlong src, jlong dst){
 	Mat& img_src = *(Mat*) src;
 	Mat& img_dst = *(Mat*) dst;
