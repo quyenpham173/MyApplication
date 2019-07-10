@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -203,9 +204,18 @@ public class CaptureImage extends AppCompatActivity {
                 }
             };
 
+    public static Bitmap RotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
     public class ImageSave implements Runnable {
         private Image image;
         private ImageReader imageReader;
+        ImageToText imageToText = new ImageToText(CaptureImage.this);
+        OcrManager ocrManager = new OcrManager();
         private ImageSave(ImageReader reader) {
             imageReader = reader;
             image = imageReader.acquireNextImage();
@@ -220,6 +230,11 @@ public class CaptureImage extends AppCompatActivity {
             image.close();
             Bitmap mbitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
             Mat mymat = new Mat();
+            int w1 = mbitmap.getWidth();
+            int h1 = mbitmap.getHeight();
+            if (w1>h1){
+                mbitmap = RotateBitmap(mbitmap, 90);
+            }
             Utils.bitmapToMat(mbitmap, mymat);
 
             //Lấy hướng dẫn chụp
@@ -279,7 +294,17 @@ public class CaptureImage extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                process(mymat);
+                Bitmap bit = process(mymat);
+                ocrManager.prepareTessData(CaptureImage.this);
+                //String result = imageToText.doInBackground(bit);
+                String result = ocrManager.processOCR(bit);
+                Bundle bundle = new Bundle();
+                bundle.putString("RESULT", result);
+                Intent intent = new Intent(CaptureImage.this, ResultActivity.class);
+                intent.putExtras(bundle);
+
+
+                startActivity(intent);
             }
         }
 
@@ -290,8 +315,7 @@ public class CaptureImage extends AppCompatActivity {
     private native long dewarpImage(long mat, long mat2);
     private native long getLines(long m, long m2);
 
-    private void process(Mat m){
-        ImageToText imageToText = new ImageToText(CaptureImage.this);
+    private Bitmap process(Mat m){
         closeCamera();
 
         //Lấy ảnh các cạnh
@@ -321,17 +345,15 @@ public class CaptureImage extends AppCompatActivity {
         int h1 = img_dst.height();
         Bitmap.Config conf = Bitmap.Config.ARGB_8888;
         Bitmap bmp = Bitmap.createBitmap(w1, h1, conf);
+        int w2 = bmp.getWidth();
+        int h2 = bmp.getHeight();
+        if (w2>h2){
+            RotateBitmap(bmp, 90);
+        }
         Utils.matToBitmap(img_dst, bmp);
-        String result = imageToText.doInBackground(bmp);
-        Bundle bundle = new Bundle();
-        bundle.putString("RESULT", result);
-        Intent intent = new Intent(CaptureImage.this, ResultActivity.class);
-        intent.putExtras(bundle);
-
         SaveImageLines(bm);  //Lưu ảnh các cạnh
         SaveImageDewarp(bmp);  // Lưu ảnh dewarp
-
-        startActivity(intent);
+        return bmp;
     }
 
     @Override
